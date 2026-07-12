@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentVerse Bangladesh</title>
+<meta name="description" content="Bangladesh's Premier Olympiad Hub — Connecting ambitious students with national & international olympiads.">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="site-header">
+  <a class="h-logo" href="index.html">
+    <img class="h-logo-img" src="assets/logo.jpg" alt="TalentVerse Logo">
+    <div class="h-logo-text">
+      <div class="name">Talent<span>Verse</span></div>
+      <div class="sub">Bangladesh</div>
+    </div>
+  </a>
+  <nav class="h-nav" id="hnav">
+    <a href="index.html" class="active">Home</a>
+    <a href="olympiads.html">Olympiads</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="news.html">News</a>
+    <a href="contact.html">Contact</a>
+    <button class="h-admin-btn" onclick="window.location.href='admin.html'">⚙ Admin</button>
+  </nav>
+  <button class="hamburger" id="hbtn" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-c">
+    <div class="hero-badge">
+      <span class="hero-dot"></span>
+      <span id="hb-text">Bangladesh's Premier Olympiad Hub</span>
+    </div>
+    <h1 class="hero-title" id="ht-title">
+      Where <span>Talent</span> Meets<br>Opportunity
+    </h1>
+    <p class="hero-sub" id="ht-sub">
+      Connecting ambitious students with national & international olympiads,
+      competitions, and academic excellence programs across Bangladesh.
+    </p>
+    <div class="hero-btns">
+      <a href="olympiads.html" class="btn-pri" id="hb1">Explore Olympiads</a>
+      <a href="#about" class="btn-out" id="hb2">Learn More</a>
+    </div>
+    <div class="hero-stats">
+      <div class="h-stat">
+        <span class="num" id="hs1n">50+</span>
+        <span class="lbl" id="hs1l">Olympiads Listed</span>
+      </div>
+      <div class="h-stat">
+        <span class="num" id="hs2n">10K+</span>
+        <span class="lbl" id="hs2l">Students Reached</span>
+      </div>
+      <div class="h-stat">
+        <span class="num" id="hs3n">64</span>
+        <span class="lbl" id="hs3l">Districts Covered</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED OLYMPIADS -->
+<section class="section" id="olympiads">
+  <div class="sec-hd">
+    <span class="eyebrow">Competitions & Events</span>
+    <h2 class="sec-title">Featured <span>Olympiads</span></h2>
+    <div class="divider"></div>
+    <p class="sec-desc" id="olymp-sec-desc">
+      Discover upcoming olympiads and competitions designed to elevate your potential.
+    </p>
+  </div>
+  <div class="olympiad-grid" id="olymp-grid"></div>
+  <div style="text-align:center;margin-top:36px;">
+    <a href="olympiads.html" class="btn-out">View All Olympiads →</a>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section" id="about">
+  <div class="about-grid">
+    <div class="at">
+      <span class="eyebrow">Who We Are</span>
+      <h2 class="sec-title">Building <span>Champions</span><br>Across Bangladesh</h2>
+      <div class="divider"></div>
+      <p id="ab-p1">
+        TalentVerse Bangladesh is the country's most dedicated platform for olympiad
+        information, resources, and community — bridging the gap between aspiring
+        students and world-class competition opportunities.
+      </p>
+      <p id="ab-p2">
+        We curate, verify, and publish information on national and international
+        olympiads so every talented student can discover competitions that match
+        their strengths.
+      </p>
+      <div class="about-feats">
+        <div class="af">
+          <div class="af-icon">🎯</div>
+          <div><h4>Verified Info</h4><p>All details rigorously checked</p></div>
+        </div>
+        <div class="af">
+          <div class="af-icon">🗓️</div>
+          <div><h4>Timely Updates</h4><p>Never miss a deadline</p></div>
+        </div>
+        <div class="af">
+          <div class="af-icon">🇧🇩</div>
+          <div><h4>All Bangladesh</h4><p>Covering all 64 districts</p></div>
+        </div>
+        <div class="af">
+          <div class="af-icon">🌐</div>
+          <div><h4>International</h4><p>Global competition pathways</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="about-vis">
+      <img class="av-logo" src="assets/logo.jpg" alt="Logo">
+      <div class="av-name">Talent<span>Verse</span> Bangladesh</div>
+      <div class="av-quote" id="av-quote">
+        "Every child in Bangladesh deserves to know about the opportunity that awaits their talent."
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LATEST NEWS -->
+<section class="section" id="news" style="background:var(--card2);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);">
+  <div class="sec-hd">
+    <span class="eyebrow">Updates</span>
+    <h2 class="sec-title">Latest <span>News</span></h2>
+    <div class="divider"></div>
+  </div>
+  <div class="news-grid" id="news-grid"></div>
+  <div style="text-align:center;margin-top:36px;">
+    <a href="news.html" class="btn-out">View All News →</a>
+  </div>
+</section>
+
+<!-- GALLERY PREVIEW -->
+<section class="section" id="gallery">
+  <div class="sec-hd">
+    <span class="eyebrow">Photos & Videos</span>
+    <h2 class="sec-title">Our <span>Gallery</span></h2>
+    <div class="divider"></div>
+  </div>
+  <div class="gallery-grid" id="gal-grid"></div>
+  <div style="text-align:center;margin-top:36px;">
+    <a href="gallery.html" class="btn-out">View Full Gallery →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-grid">
+    <div class="f-brand">
+      <a class="h-logo" href="index.html" style="text-decoration:none;">
+        <img class="h-logo-img" src="assets/logo.jpg" alt="Logo">
+        <div class="h-logo-text">
+          <div class="name">Talent<span>Verse</span></div>
+          <div class="sub">Bangladesh</div>
+        </div>
+      </a>
+      <p id="f-desc">TalentVerse Bangladesh is the country's most dedicated platform for olympiad information, resources, and community.</p>
+    </div>
+    <div class="f-col">
+      <h4>Quick Links</h4>
+      <a href="index.html">Home</a>
+      <a href="olympiads.html">Olympiads</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="news.html">News</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="f-col">
+      <h4>Contact</h4>
+      <a id="f-email" href="#">talentversebd@gmail.com</a>
+      <a id="f-phone" href="#">+880 1634-428536</a>
+      <a id="f-addr" href="#">Dhaka, Bangladesh</a>
+    </div>
+  </div>
+  <div class="f-bottom">
+    <p>© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Numexis.</p>
+  </div>
+</footer>
+
+<!-- OLYMPIAD MODAL -->
+<div class="modal-ov" id="o-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="m-media"></div>
+    <div class="modal-body">
+      <div class="modal-cat" id="m-cat"></div>
+      <div class="modal-title" id="m-title"></div>
+      <div class="modal-details" id="m-details"></div>
+      <div class="modal-desc" id="m-desc"></div>
+      <div id="m-reg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" onclick="closeLB()">
+  <button class="lb-close" onclick="closeLB()">✕</button>
+  <div id="lb-content"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-ico">✅</span>
+  <span class="toast-msg" id="t-msg"></span>
+</div>
+
+<!-- SCRIPTS -->
+<script src="js/data.js"></script>
+<script src="js/render.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>
