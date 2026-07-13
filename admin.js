@@ -1,4 +1,4 @@
-/*===== ADMIN OPEN/CLOSE =====*/
+/*===== ADMIN NAVIGATION =====*/
 function openAdmin() {
   window.location.href = 'admin.html';
 }
@@ -7,25 +7,8 @@ function closeAdmin() {
   window.location.href = 'index.html';
 }
 
-function doLogout() {
-  sessionStorage.removeItem('tv_admin_logged');
-  window.location.href = 'index.html';
-}
-
-/*===== LOGIN CHECK =====*/
-function checkAdminAuth() {
-  const logged = sessionStorage.getItem('tv_admin_logged');
-  if(!logged) {
-    document.getElementById('adm-login').classList.remove('hidden');
-    document.getElementById('adm-shell').style.display = 'none';
-  } else {
-    document.getElementById('adm-login').classList.add('hidden');
-    document.getElementById('adm-shell').style.display = 'flex';
-    renderAdminAll();
-  }
-}
-
-function doLogin() {
+/*===== FIREBASE AUTH LOGIN =====*/
+async function doLogin() {
   const u = document.getElementById('lu').value.trim();
   const p = document.getElementById('lp').value;
   const err = document.getElementById('lerr');
@@ -37,17 +20,64 @@ function doLogin() {
     return;
   }
 
-  if(checkLogin(u, p)) {
-    sessionStorage.setItem('tv_admin_logged', '1');
-    document.getElementById('adm-login').classList.add('hidden');
-    document.getElementById('adm-shell').style.display = 'flex';
-    renderAdminAll();
-    toast("Welcome back, Admin! 👋");
-  } else {
-    err.classList.add('show');
-    err.textContent = "Incorrect username or password.";
-    setTimeout(() => err.classList.remove('show'), 3000);
+  // Wait for Firebase
+  const check = setInterval(async () => {
+    if(window.firebaseAuth && window.firebaseFunctions) {
+      clearInterval(check);
+      const { signInWithEmailAndPassword } = window.firebaseFunctions;
+      
+      try {
+        await signInWithEmailAndPassword(window.firebaseAuth, u, p);
+        // Success handled by onAuthStateChanged
+      } catch(error) {
+        err.classList.add('show');
+        err.textContent = "Incorrect email or password.";
+        setTimeout(() => err.classList.remove('show'), 3000);
+        console.error("Login error:", error);
+      }
+    }
+  }, 100);
+}
+
+/*===== LOGOUT =====*/
+async function doLogout() {
+  const { signOut } = window.firebaseFunctions;
+  try {
+    await signOut(window.firebaseAuth);
+    window.location.href = 'index.html';
+  } catch(err) {
+    console.error("Logout error:", err);
   }
+}
+
+/*===== AUTH STATE CHECK =====*/
+function checkAdminAuth() {
+  const check = setInterval(() => {
+    if(window.firebaseAuth && window.firebaseFunctions) {
+      clearInterval(check);
+      const { onAuthStateChanged } = window.firebaseFunctions;
+      
+      onAuthStateChanged(window.firebaseAuth, (user) => {
+        if(user) {
+          // Logged in
+          document.getElementById('adm-login').classList.add('hidden');
+          document.getElementById('adm-shell').style.display = 'flex';
+          renderAdminAll();
+          // Load messages and registrations
+          loadMessages().then(() => {
+            if(typeof renderMessagesTable === 'function') renderMessagesTable();
+          });
+          loadRegistrations().then(() => {
+            if(typeof renderRegistrationsTable === 'function') renderRegistrationsTable();
+          });
+        } else {
+          // Not logged in
+          document.getElementById('adm-login').classList.remove('hidden');
+          document.getElementById('adm-shell').style.display = 'none';
+        }
+      });
+    }
+  }, 100);
 }
 
 /*===== SIDEBAR =====*/
@@ -65,45 +95,42 @@ function closeSidebar() {
 function goSec(btn) {
   const secId = btn.getAttribute('data-sec');
 
-  // Sections
   document.querySelectorAll('.adm-sec').forEach(s => s.classList.remove('active'));
   const sec = document.getElementById(secId);
   if(sec) sec.classList.add('active');
 
-  // Nav Buttons
   document.querySelectorAll('.adm-nb').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 
-  // Page Title
   const titles = {
     'dash': 'Dashboard',
     'home-ed': 'Home Page Editor',
     'olymp-adm': 'Manage Olympiads',
     'gal-adm': 'Gallery Manager',
     'news-adm': 'News Updates',
+    'msg-adm': 'Contact Messages',
+    'reg-adm': 'Registrations',
     'set-adm': 'System Settings'
   };
   const ptitle = document.getElementById('adm-ptitle');
   if(ptitle) ptitle.textContent = titles[secId] || secId;
 
-  // Topbar Actions
   const actions = document.getElementById('adm-topbar-actions');
   if(actions) {
     actions.innerHTML = '';
     if(secId === 'home-ed') {
       actions.innerHTML = `<button class="save-btn" onclick="saveHomeEditor()">💾 Save Changes</button>`;
-    } else if(secId === 'set-adm') {
-      actions.innerHTML = `<button class="save-btn" onclick="saveAdminSettings()">💾 Save Settings</button>`;
     } else if(secId === 'olymp-adm') {
       actions.innerHTML = `<button class="add-btn" onclick="openOlympiadForm()">+ Add Olympiad</button>`;
     } else if(secId === 'gal-adm') {
       actions.innerHTML = `<button class="add-btn" onclick="openGalleryForm()">+ Add Media</button>`;
     } else if(secId === 'news-adm') {
       actions.innerHTML = `<button class="add-btn" onclick="openNewsForm()">+ Add News</button>`;
+    } else if(secId === 'reg-adm') {
+      actions.innerHTML = `<button class="add-btn" onclick="downloadRegistrationsCSV()">⬇️ Download CSV</button>`;
     }
   }
 
-  // Close sidebar on mobile
   if(window.innerWidth <= 700) closeSidebar();
 }
 
@@ -114,7 +141,6 @@ function renderAdminAll() {
   renderGalleryTable();
   renderNewsTable();
   loadHomeEditor();
-  loadSettings();
 }
 
 /*===== DASHBOARD =====*/
@@ -122,48 +148,33 @@ function renderDashboard() {
   const olympiads = getOlympiads();
   const gallery = getGallery();
   const news = getNews();
+  const messages = getMessages();
+  const registrations = getRegistrations();
 
   const active = olympiads.filter(o => o.status === 'active').length;
   const upcoming = olympiads.filter(o => o.status === 'upcoming').length;
-  const past = olympiads.filter(o => o.status === 'past').length;
+  const unreadMsg = messages.filter(m => !m.read).length;
 
   const stats = document.getElementById('db-stats');
   if(stats) {
     stats.innerHTML = `
-      <div class="stat-card">
-        <div class="sl">Total Olympiads</div>
-        <div class="sv">${olympiads.length}</div>
-      </div>
-      <div class="stat-card">
-        <div class="sl">Active Now</div>
-        <div class="sv">${active}</div>
-      </div>
-      <div class="stat-card">
-        <div class="sl">Upcoming</div>
-        <div class="sv">${upcoming}</div>
-      </div>
-      <div class="stat-card">
-        <div class="sl">Past Events</div>
-        <div class="sv">${past}</div>
-      </div>
-      <div class="stat-card">
-        <div class="sl">Gallery Items</div>
-        <div class="sv">${gallery.length}</div>
-      </div>
-      <div class="stat-card">
-        <div class="sl">News Posts</div>
-        <div class="sv">${news.length}</div>
-      </div>`;
+      <div class="stat-card"><div class="sl">Total Olympiads</div><div class="sv">${olympiads.length}</div></div>
+      <div class="stat-card"><div class="sl">Active Now</div><div class="sv">${active}</div></div>
+      <div class="stat-card"><div class="sl">Upcoming</div><div class="sv">${upcoming}</div></div>
+      <div class="stat-card"><div class="sl">Gallery Items</div><div class="sv">${gallery.length}</div></div>
+      <div class="stat-card"><div class="sl">News Posts</div><div class="sv">${news.length}</div></div>
+      <div class="stat-card"><div class="sl">Messages</div><div class="sv">${messages.length}</div></div>
+      <div class="stat-card"><div class="sl">Unread Msgs</div><div class="sv" style="color:#f87171;">${unreadMsg}</div></div>
+      <div class="stat-card"><div class="sl">Registrations</div><div class="sv">${registrations.length}</div></div>`;
   }
 
-  // Recent Olympiads
   const recent = document.getElementById('db-recent');
   if(recent) {
     if(olympiads.length === 0) {
       recent.innerHTML = `<tr class="empty-row"><td colspan="3">No olympiads added yet</td></tr>`;
     } else {
       recent.innerHTML = '';
-      olympiads.slice(-5).reverse().forEach(o => {
+      olympiads.slice(0, 5).forEach(o => {
         recent.innerHTML += `
           <tr>
             <td>${o.title}</td>
@@ -187,21 +198,17 @@ function renderOlympiadTable() {
   }
 
   tbody.innerHTML = '';
-  olympiads.forEach((o, i) => {
+  olympiads.forEach((o) => {
     tbody.innerHTML += `
       <tr>
-        <td>
-          ${o.img
-            ? `<img src="${o.img}" class="thumb" alt="cover">`
-            : `<div class="thumb" style="background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:1.2rem">🏆</div>`}
-        </td>
+        <td>${o.img ? `<img src="${o.img}" class="thumb" alt="cover">` : `<div class="thumb" style="background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:1.2rem">🏆</div>`}</td>
         <td>${o.title}</td>
         <td>${o.cat}</td>
         <td>${o.date || 'TBA'}</td>
         <td><span class="bs bs-${o.status}">${o.status}</span></td>
         <td class="tbl-acts">
-          <button class="e-btn" onclick="editOlympiad(${i})">Edit</button>
-          <button class="d-btn" onclick="deleteOlympiad(${i})">Delete</button>
+          <button class="e-btn" onclick="editOlympiad('${o.id}')">Edit</button>
+          <button class="d-btn" onclick="deleteOlympiad('${o.id}')">Delete</button>
         </td>
       </tr>`;
   });
@@ -214,24 +221,20 @@ function renderGalleryTable() {
 
   const gallery = getGallery();
   if(gallery.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="4">No media yet. Click "+ Add Media" to get started.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="4">No media yet.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = '';
-  gallery.forEach((g, i) => {
+  gallery.forEach((g) => {
     tbody.innerHTML += `
       <tr>
-        <td>
-          ${g.type === 'video'
-            ? `<div class="thumb" style="background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:1.5rem">🎥</div>`
-            : `<img src="${g.url}" class="thumb" alt="${g.cap}">`}
-        </td>
+        <td>${g.type === 'video' ? `<div class="thumb" style="background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:1.5rem">🎥</div>` : `<img src="${g.url}" class="thumb">`}</td>
         <td>${g.cap || '—'}</td>
         <td>${g.type}</td>
         <td class="tbl-acts">
-          <button class="e-btn" onclick="editGallery(${i})">Edit</button>
-          <button class="d-btn" onclick="deleteGallery(${i})">Delete</button>
+          <button class="e-btn" onclick="editGallery('${g.id}')">Edit</button>
+          <button class="d-btn" onclick="deleteGallery('${g.id}')">Delete</button>
         </td>
       </tr>`;
   });
@@ -244,33 +247,163 @@ function renderNewsTable() {
 
   const news = getNews();
   if(news.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="3">No news yet. Click "+ Add News" to get started.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="3">No news yet.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = '';
-  news.forEach((n, i) => {
+  news.forEach((n) => {
     tbody.innerHTML += `
       <tr>
         <td>${n.title}</td>
         <td>${n.date}</td>
         <td class="tbl-acts">
-          <button class="e-btn" onclick="editNews(${i})">Edit</button>
-          <button class="d-btn" onclick="deleteNews(${i})">Delete</button>
+          <button class="e-btn" onclick="editNews('${n.id}')">Edit</button>
+          <button class="d-btn" onclick="deleteNews('${n.id}')">Delete</button>
         </td>
       </tr>`;
   });
+}
+
+/*===== MESSAGES TABLE =====*/
+function renderMessagesTable() {
+  const tbody = document.getElementById('mtbl');
+  if(!tbody) return;
+
+  const messages = getMessages();
+  if(messages.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">No messages yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  messages.forEach((m) => {
+    const date = m.createdAt ? new Date(m.createdAt).toLocaleString() : 'N/A';
+    tbody.innerHTML += `
+      <tr>
+        <td>${m.name}</td>
+        <td><a href="mailto:${m.email}" style="color:var(--blue-br)">${m.email}</a></td>
+        <td>${m.subject || '(No subject)'}</td>
+        <td>${date}</td>
+        <td class="tbl-acts">
+          <button class="e-btn" onclick="viewMessage('${m.id}')">View</button>
+          <button class="d-btn" onclick="deleteMessageAction('${m.id}')">Delete</button>
+        </td>
+      </tr>`;
+  });
+}
+
+function viewMessage(id) {
+  const msg = getMessages().find(m => m.id === id);
+  if(!msg) return;
+  alert(`From: ${msg.name}\nEmail: ${msg.email}\nSubject: ${msg.subject || 'N/A'}\n\nMessage:\n${msg.message}`);
+}
+
+async function deleteMessageAction(id) {
+  if(!confirm("Delete this message?")) return;
+  const ok = await deleteMessage(id);
+  if(ok) {
+    renderMessagesTable();
+    renderDashboard();
+    toast("Message deleted.");
+  }
+}
+
+/*===== REGISTRATIONS TABLE =====*/
+function renderRegistrationsTable() {
+  const tbody = document.getElementById('rtbl');
+  if(!tbody) return;
+
+  const regs = getRegistrations();
+  if(regs.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No registrations yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  regs.forEach((r) => {
+    const date = r.createdAt ? new Date(r.createdAt).toLocaleString() : 'N/A';
+    tbody.innerHTML += `
+      <tr>
+        <td>${r.name}</td>
+        <td><a href="mailto:${r.email}" style="color:var(--blue-br)">${r.email}</a></td>
+        <td>${r.phone}</td>
+        <td>${r.olympiad}</td>
+        <td>${date}</td>
+        <td class="tbl-acts">
+          <button class="e-btn" onclick="viewRegistration('${r.id}')">View</button>
+          <button class="d-btn" onclick="deleteRegistrationAction('${r.id}')">Delete</button>
+        </td>
+      </tr>`;
+  });
+}
+
+function viewRegistration(id) {
+  const r = getRegistrations().find(x => x.id === id);
+  if(!r) return;
+  const details = `
+Name: ${r.name}
+Email: ${r.email}
+Phone: ${r.phone}
+Olympiad: ${r.olympiad}
+Class: ${r.class || 'N/A'}
+School: ${r.school || 'N/A'}
+Address: ${r.address || 'N/A'}
+Message: ${r.message || 'N/A'}
+Date: ${r.createdAt ? new Date(r.createdAt).toLocaleString() : 'N/A'}
+  `;
+  alert(details);
+}
+
+async function deleteRegistrationAction(id) {
+  if(!confirm("Delete this registration?")) return;
+  const ok = await deleteRegistration(id);
+  if(ok) {
+    renderRegistrationsTable();
+    renderDashboard();
+    toast("Registration deleted.");
+  }
+}
+
+function downloadRegistrationsCSV() {
+  const regs = getRegistrations();
+  if(regs.length === 0) return toast("No registrations to download.", true);
+
+  let csv = "Name,Email,Phone,Olympiad,Class,School,Address,Message,Date\n";
+  regs.forEach(r => {
+    const row = [
+      r.name || '',
+      r.email || '',
+      r.phone || '',
+      r.olympiad || '',
+      r.class || '',
+      r.school || '',
+      r.address || '',
+      (r.message || '').replace(/\n/g, ' '),
+      r.createdAt ? new Date(r.createdAt).toLocaleString() : ''
+    ].map(x => `"${String(x).replace(/"/g, '""')}"`).join(',');
+    csv += row + "\n";
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `registrations_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("CSV downloaded! ✅");
 }
 
 /*===== HOME EDITOR =====*/
 function loadHomeEditor() {
   const h = getHome();
   const fields = {
-    'he-badge': h.badge, 'he-title': h.title,
-    'he-sub': h.sub, 'he-b1': h.b1, 'he-b2': h.b2,
-    'he-odesc': h.odesc, 'he-s1n': h.s1n, 'he-s1l': h.s1l,
-    'he-s2n': h.s2n, 'he-s2l': h.s2l, 'he-s3n': h.s3n,
-    'he-s3l': h.s3l, 'he-quote': h.quote, 'he-fdesc': h.fdesc,
+    'he-badge': h.badge, 'he-title': h.title, 'he-sub': h.sub,
+    'he-b1': h.b1, 'he-b2': h.b2, 'he-odesc': h.odesc,
+    'he-s1n': h.s1n, 'he-s1l': h.s1l, 'he-s2n': h.s2n,
+    'he-s2l': h.s2l, 'he-s3n': h.s3n, 'he-s3l': h.s3l,
+    'he-quote': h.quote, 'he-fdesc': h.fdesc,
     'he-femail': h.femail, 'he-fphone': h.fphone, 'he-faddr': h.faddr
   };
   Object.entries(fields).forEach(([id, val]) => {
@@ -279,7 +412,7 @@ function loadHomeEditor() {
   });
 }
 
-function saveHomeEditor() {
+async function saveHomeEditor() {
   const data = {
     badge: document.getElementById('he-badge')?.value || '',
     title: document.getElementById('he-title')?.value || '',
@@ -299,23 +432,9 @@ function saveHomeEditor() {
     fphone: document.getElementById('he-fphone')?.value || '',
     faddr: document.getElementById('he-faddr')?.value || ''
   };
-  updateHome(data);
-  toast("Home page updated successfully! ✅");
-}
-
-/*===== SETTINGS =====*/
-function loadSettings() {
-  const u = document.getElementById('set-u');
-  if(u) u.value = state.admin.u || '';
-}
-
-function saveAdminSettings() {
-  const u = document.getElementById('set-u')?.value.trim();
-  const p = document.getElementById('set-p')?.value;
-  if(!u) return toast("Username cannot be empty!", true);
-  updateAdmin(u, p);
-  if(document.getElementById('set-p')) document.getElementById('set-p').value = '';
-  toast("Settings saved successfully! ✅");
+  const ok = await updateHome(data);
+  if(ok) toast("Home page updated! ✅");
+  else toast("Update failed!", true);
 }
 
 /*===== FORM MODAL =====*/
@@ -333,19 +452,22 @@ function closeFM(id) {
 function openOlympiadForm() {
   document.getElementById('ofm-title').textContent = "Add Olympiad";
   document.getElementById('of-eid').value = "";
-  const fields = ['of-t','of-dt','of-rd','of-v','of-pr','of-el','of-fe','of-rl','of-ds','of-fd','of-iu'];
-  fields.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  ['of-t','of-dt','of-rd','of-v','of-pr','of-el','of-fe','of-rl','of-ds','of-fd','of-iu'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
   document.getElementById('of-cat').value = 'Mathematics';
   document.getElementById('of-st').value = 'upcoming';
+  document.getElementById('of-reg-enabled').checked = false;
   document.getElementById('of-iprev').innerHTML = '';
   openFM('ofm');
 }
 
-function editOlympiad(i) {
-  const o = getOlympiads()[i];
+function editOlympiad(id) {
+  const o = getOlympiads().find(x => x.id === id);
   if(!o) return;
   document.getElementById('ofm-title').textContent = "Edit Olympiad";
-  document.getElementById('of-eid').value = i;
+  document.getElementById('of-eid').value = id;
   document.getElementById('of-t').value = o.title || '';
   document.getElementById('of-cat').value = o.cat || 'Mathematics';
   document.getElementById('of-st').value = o.status || 'upcoming';
@@ -359,19 +481,19 @@ function editOlympiad(i) {
   document.getElementById('of-ds').value = o.desc || '';
   document.getElementById('of-fd').value = o.fullDesc || '';
   document.getElementById('of-iu').value = o.img || '';
+  document.getElementById('of-reg-enabled').checked = o.regEnabled || false;
   document.getElementById('of-iprev').innerHTML = o.img ? `<img src="${o.img}">` : '';
   openFM('ofm');
 }
 
-function saveOlympiad() {
+async function saveOlympiad() {
   const title = document.getElementById('of-t').value.trim();
   const desc = document.getElementById('of-ds').value.trim();
   if(!title) return toast("Title is required!", true);
   if(!desc) return toast("Short description is required!", true);
 
   const o = {
-    title,
-    desc,
+    title, desc,
     cat: document.getElementById('of-cat').value,
     status: document.getElementById('of-st').value,
     date: document.getElementById('of-dt').value,
@@ -382,25 +504,38 @@ function saveOlympiad() {
     fee: document.getElementById('of-fe').value,
     regLink: document.getElementById('of-rl').value,
     fullDesc: document.getElementById('of-fd').value,
-    img: document.getElementById('of-iu').value
+    img: document.getElementById('of-iu').value,
+    regEnabled: document.getElementById('of-reg-enabled').checked
   };
 
   const eid = document.getElementById('of-eid').value;
-  if(eid === '') addOlympiad(o);
-  else updateOlympiad(parseInt(eid), o);
+  const btn = document.querySelector('#ofm .fs-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
 
-  renderOlympiadTable();
-  renderDashboard();
-  closeFM('ofm');
-  toast("Olympiad saved successfully! ✅");
+  const ok = eid === '' ? await addOlympiad(o) : await updateOlympiad(eid, o);
+  
+  btn.textContent = 'Save Olympiad';
+  btn.disabled = false;
+
+  if(ok) {
+    renderOlympiadTable();
+    renderDashboard();
+    closeFM('ofm');
+    toast("Olympiad saved! ✅");
+  } else {
+    toast("Save failed!", true);
+  }
 }
 
-function deleteOlympiad(i) {
-  if(!confirm("Are you sure you want to delete this olympiad?")) return;
-  deleteOlympiadData(i);
-  renderOlympiadTable();
-  renderDashboard();
-  toast("Olympiad deleted.");
+async function deleteOlympiad(id) {
+  if(!confirm("Delete this olympiad?")) return;
+  const ok = await deleteOlympiadData(id);
+  if(ok) {
+    renderOlympiadTable();
+    renderDashboard();
+    toast("Olympiad deleted.");
+  }
 }
 
 /*===== GALLERY FORM =====*/
@@ -414,21 +549,19 @@ function openGalleryForm() {
   openFM('gfm');
 }
 
-function editGallery(i) {
-  const g = getGallery()[i];
+function editGallery(id) {
+  const g = getGallery().find(x => x.id === id);
   if(!g) return;
   document.getElementById('gfm-title').textContent = "Edit Media";
-  document.getElementById('gf-eid').value = i;
+  document.getElementById('gf-eid').value = id;
   document.getElementById('gf-cap').value = g.cap || '';
   document.getElementById('gf-type').value = g.type || 'image';
   document.getElementById('gf-url').value = g.url || '';
-  document.getElementById('gf-prev').innerHTML = g.type === 'video'
-    ? `<div style="font-size:2rem;padding:10px">🎥</div>`
-    : `<img src="${g.url}">`;
+  document.getElementById('gf-prev').innerHTML = g.type === 'video' ? `<div style="font-size:2rem;padding:10px">🎥</div>` : `<img src="${g.url}">`;
   openFM('gfm');
 }
 
-function saveGallery() {
+async function saveGallery() {
   const url = document.getElementById('gf-url').value.trim();
   if(!url) return toast("URL or file is required!", true);
 
@@ -439,21 +572,33 @@ function saveGallery() {
   };
 
   const eid = document.getElementById('gf-eid').value;
-  if(eid === '') addGallery(g);
-  else updateGallery(parseInt(eid), g);
+  const btn = document.querySelector('#gfm .fs-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
 
-  renderGalleryTable();
-  renderDashboard();
-  closeFM('gfm');
-  toast("Media saved successfully! ✅");
+  const ok = eid === '' ? await addGallery(g) : await updateGallery(eid, g);
+  
+  btn.textContent = 'Save Media';
+  btn.disabled = false;
+
+  if(ok) {
+    renderGalleryTable();
+    renderDashboard();
+    closeFM('gfm');
+    toast("Media saved! ✅");
+  } else {
+    toast("Save failed!", true);
+  }
 }
 
-function deleteGallery(i) {
-  if(!confirm("Delete this media?")) return;
-  deleteGalleryData(i);
-  renderGalleryTable();
-  renderDashboard();
-  toast("Media deleted.");
+async function deleteGallery(id) {
+  if(!confirm("Delete this?")) return;
+  const ok = await deleteGalleryData(id);
+  if(ok) {
+    renderGalleryTable();
+    renderDashboard();
+    toast("Deleted.");
+  }
 }
 
 /*===== NEWS FORM =====*/
@@ -466,68 +611,117 @@ function openNewsForm() {
   openFM('nfm');
 }
 
-function editNews(i) {
-  const n = getNews()[i];
+function editNews(id) {
+  const n = getNews().find(x => x.id === id);
   if(!n) return;
   document.getElementById('nfm-title').textContent = "Edit News";
-  document.getElementById('nf-eid').value = i;
+  document.getElementById('nf-eid').value = id;
   document.getElementById('nf-t').value = n.title || '';
   document.getElementById('nf-d').value = n.date || '';
   document.getElementById('nf-b').value = n.body || '';
   openFM('nfm');
 }
 
-function saveNews() {
+async function saveNews() {
   const title = document.getElementById('nf-t').value.trim();
   const body = document.getElementById('nf-b').value.trim();
   if(!title) return toast("Headline is required!", true);
   if(!body) return toast("News body is required!", true);
 
-  const n = {
-    title,
-    body,
-    date: document.getElementById('nf-d').value
-  };
+  const n = { title, body, date: document.getElementById('nf-d').value };
 
   const eid = document.getElementById('nf-eid').value;
-  if(eid === '') addNews(n);
-  else updateNews(parseInt(eid), n);
+  const btn = document.querySelector('#nfm .fs-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
 
-  renderNewsTable();
-  renderDashboard();
-  closeFM('nfm');
-  toast("News saved successfully! ✅");
+  const ok = eid === '' ? await addNews(n) : await updateNews(eid, n);
+  
+  btn.textContent = 'Save News';
+  btn.disabled = false;
+
+  if(ok) {
+    renderNewsTable();
+    renderDashboard();
+    closeFM('nfm');
+    toast("News saved! ✅");
+  } else {
+    toast("Save failed!", true);
+  }
 }
 
-function deleteNews(i) {
+async function deleteNews(id) {
   if(!confirm("Delete this news?")) return;
-  deleteNewsData(i);
-  renderNewsTable();
-  renderDashboard();
-  toast("News deleted.");
+  const ok = await deleteNewsData(id);
+  if(ok) {
+    renderNewsTable();
+    renderDashboard();
+    toast("News deleted.");
+  }
 }
 
-/*===== FILE UPLOAD PREVIEW =====*/
-function prevOImg(input) {
+/*===== IMAGE UPLOAD (Auto ImgBB) =====*/
+async function prevOImg(input) {
   if(!input.files || !input.files[0]) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('of-iu').value = e.target.result;
-    document.getElementById('of-iprev').innerHTML = `<img src="${e.target.result}">`;
-  };
-  reader.readAsDataURL(input.files[0]);
+  const file = input.files[0];
+  
+  // Check size (max 32 MB for ImgBB)
+  if(file.size > 32 * 1024 * 1024) {
+    return toast("File too large! Max 32MB", true);
+  }
+
+  const prev = document.getElementById('of-iprev');
+  prev.innerHTML = `<div style="padding:10px;color:var(--muted)">⏳ Uploading to ImgBB...</div>`;
+
+  const result = await uploadToImgBB(file);
+  
+  if(result.success) {
+    document.getElementById('of-iu').value = result.url;
+    prev.innerHTML = `<img src="${result.url}"><div style="color:#4ade80;font-size:.75rem;margin-top:5px">✅ Uploaded!</div>`;
+    toast("Image uploaded! ✅");
+  } else {
+    prev.innerHTML = `<div style="color:#f87171">❌ Upload failed</div>`;
+    toast("Upload failed!", true);
+  }
 }
 
-function prevGFile(input) {
+async function prevGFile(input) {
   if(!input.files || !input.files[0]) return;
-  const isVideo = input.files[0].type.includes('video');
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('gf-url').value = e.target.result;
-    document.getElementById('gf-type').value = isVideo ? 'video' : 'image';
-    document.getElementById('gf-prev').innerHTML = isVideo
-      ? `<div style="font-size:2rem;padding:10px">🎥 Video Uploaded</div>`
-      : `<img src="${e.target.result}">`;
-  };
-  reader.readAsDataURL(input.files[0]);
+  const file = input.files[0];
+  const isVideo = file.type.includes('video');
+
+  if(isVideo) {
+    // For videos, use base64 (or you can use a video URL)
+    if(file.size > 5 * 1024 * 1024) {
+      return toast("Video too large! Max 5MB. Please use a video URL instead.", true);
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('gf-url').value = e.target.result;
+      document.getElementById('gf-type').value = 'video';
+      document.getElementById('gf-prev').innerHTML = `<div style="font-size:2rem;padding:10px">🎥 Video Uploaded</div>`;
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+
+  // Image - upload to ImgBB
+  if(file.size > 32 * 1024 * 1024) {
+    return toast("File too large! Max 32MB", true);
+  }
+
+  const prev = document.getElementById('gf-prev');
+  prev.innerHTML = `<div style="padding:10px;color:var(--muted)">⏳ Uploading to ImgBB...</div>`;
+
+  const result = await uploadToImgBB(file);
+  
+  if(result.success) {
+    document.getElementById('gf-url').value = result.url;
+    document.getElementById('gf-type').value = 'image';
+    prev.innerHTML = `<img src="${result.url}"><div style="color:#4ade80;font-size:.75rem;margin-top:5px">✅ Uploaded!</div>`;
+    toast("Image uploaded! ✅");
+  } else {
+    prev.innerHTML = `<div style="color:#f87171">❌ Upload failed</div>`;
+    toast("Upload failed!", true);
+  }
 }
