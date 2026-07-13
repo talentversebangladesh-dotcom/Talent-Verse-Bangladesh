@@ -31,6 +31,7 @@
     <a href="olympiads.html" class="active">Olympiads</a>
     <a href="gallery.html">Gallery</a>
     <a href="news.html">News</a>
+    <a href="register.html">Register</a>
     <a href="contact.html">Contact</a>
     <button class="h-admin-btn" onclick="window.location.href='admin.html'">⚙ Admin</button>
   </nav>
@@ -49,22 +50,16 @@
 <!-- OLYMPIADS SECTION -->
 <section class="section">
   <div class="filter-bar">
-    <input
-      type="text"
-      id="search-input"
-      placeholder="🔍 Search olympiads..."
+    <input type="text" id="search-input" placeholder="🔍 Search olympiads..."
       oninput="filterOlympiads(this.value, document.getElementById('status-filter').value)">
-    <select
-      id="status-filter"
+    <select id="status-filter"
       onchange="filterOlympiads(document.getElementById('search-input').value, this.value)">
       <option value="all">All Status</option>
       <option value="active">Active</option>
       <option value="upcoming">Upcoming</option>
       <option value="past">Past</option>
     </select>
-    <select
-      id="cat-filter"
-      onchange="filterByCategory(this.value)">
+    <select id="cat-filter" onchange="filterByCategory(this.value)">
       <option value="all">All Categories</option>
       <option value="Mathematics">Mathematics</option>
       <option value="Science">Science</option>
@@ -101,11 +96,12 @@
       <a href="olympiads.html">Olympiads</a>
       <a href="gallery.html">Gallery</a>
       <a href="news.html">News</a>
+      <a href="register.html">Register</a>
       <a href="contact.html">Contact</a>
     </div>
     <div class="f-col">
       <h4>Contact</h4>
-      <a id="f-email" href="#">talentversebd@gmail.com</a>
+      <a id="f-email" href="#">talentversebangladesh@gmail.com</a>
       <a id="f-phone" href="#">+880 1634-428536</a>
       <a id="f-addr" href="#">Dhaka, Bangladesh</a>
     </div>
@@ -136,6 +132,10 @@
   <span class="toast-msg" id="t-msg"></span>
 </div>
 
+<!-- Firebase & EmailJS -->
+<script type="module" src="firebase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 <script src="data.js"></script>
 <script src="render.js"></script>
 <script src="main.js"></script>
@@ -158,10 +158,10 @@ function filterByCategory(cat) {
     return;
   }
   filtered.forEach((o) => {
-    const realIndex = olympiads.indexOf(o);
+    const idx = olympiads.indexOf(o);
     const card = document.createElement('div');
     card.className = 'o-card';
-    card.onclick = () => openModal(realIndex);
+    card.onclick = () => openModal(idx);
     card.innerHTML = `
       ${o.img ? `<img src="${o.img}" class="o-card-img" alt="${o.title}">` : `<div class="o-card-noimg">🏆</div>`}
       <div class="o-card-badge">${o.status}</div>
