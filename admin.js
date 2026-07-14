@@ -20,7 +20,6 @@ async function doLogin() {
     return;
   }
 
-  // Wait for Firebase
   const check = setInterval(async () => {
     if(window.firebaseAuth && window.firebaseFunctions) {
       clearInterval(check);
@@ -28,7 +27,6 @@ async function doLogin() {
       
       try {
         await signInWithEmailAndPassword(window.firebaseAuth, u, p);
-        // Success handled by onAuthStateChanged
       } catch(error) {
         err.classList.add('show');
         err.textContent = "Incorrect email or password.";
@@ -59,11 +57,9 @@ function checkAdminAuth() {
       
       onAuthStateChanged(window.firebaseAuth, (user) => {
         if(user) {
-          // Logged in
           document.getElementById('adm-login').classList.add('hidden');
           document.getElementById('adm-shell').style.display = 'flex';
           renderAdminAll();
-          // Load messages and registrations
           loadMessages().then(() => {
             if(typeof renderMessagesTable === 'function') renderMessagesTable();
           });
@@ -71,7 +67,6 @@ function checkAdminAuth() {
             if(typeof renderRegistrationsTable === 'function') renderRegistrationsTable();
           });
         } else {
-          // Not logged in
           document.getElementById('adm-login').classList.remove('hidden');
           document.getElementById('adm-shell').style.display = 'none';
         }
@@ -129,6 +124,11 @@ function goSec(btn) {
     } else if(secId === 'reg-adm') {
       actions.innerHTML = `<button class="add-btn" onclick="downloadRegistrationsCSV()">⬇️ Download CSV</button>`;
     }
+  }
+
+  // Load registration settings when opening Settings tab
+  if(secId === 'set-adm') {
+    loadRegistrationSettings();
   }
 
   if(window.innerWidth <= 700) closeSidebar();
@@ -458,7 +458,8 @@ function openOlympiadForm() {
   });
   document.getElementById('of-cat').value = 'Mathematics';
   document.getElementById('of-st').value = 'upcoming';
-  document.getElementById('of-reg-enabled').checked = false;
+  const chk = document.getElementById('of-reg-enabled');
+  if(chk) chk.checked = false;
   document.getElementById('of-iprev').innerHTML = '';
   openFM('ofm');
 }
@@ -481,7 +482,8 @@ function editOlympiad(id) {
   document.getElementById('of-ds').value = o.desc || '';
   document.getElementById('of-fd').value = o.fullDesc || '';
   document.getElementById('of-iu').value = o.img || '';
-  document.getElementById('of-reg-enabled').checked = o.regEnabled || false;
+  const chk = document.getElementById('of-reg-enabled');
+  if(chk) chk.checked = o.regEnabled || false;
   document.getElementById('of-iprev').innerHTML = o.img ? `<img src="${o.img}">` : '';
   openFM('ofm');
 }
@@ -505,7 +507,7 @@ async function saveOlympiad() {
     regLink: document.getElementById('of-rl').value,
     fullDesc: document.getElementById('of-fd').value,
     img: document.getElementById('of-iu').value,
-    regEnabled: document.getElementById('of-reg-enabled').checked
+    regEnabled: document.getElementById('of-reg-enabled')?.checked || false
   };
 
   const eid = document.getElementById('of-eid').value;
@@ -665,7 +667,6 @@ async function prevOImg(input) {
   if(!input.files || !input.files[0]) return;
   const file = input.files[0];
   
-  // Check size (max 32 MB for ImgBB)
   if(file.size > 32 * 1024 * 1024) {
     return toast("File too large! Max 32MB", true);
   }
@@ -691,7 +692,6 @@ async function prevGFile(input) {
   const isVideo = file.type.includes('video');
 
   if(isVideo) {
-    // For videos, use base64 (or you can use a video URL)
     if(file.size > 5 * 1024 * 1024) {
       return toast("Video too large! Max 5MB. Please use a video URL instead.", true);
     }
@@ -705,7 +705,6 @@ async function prevGFile(input) {
     return;
   }
 
-  // Image - upload to ImgBB
   if(file.size > 32 * 1024 * 1024) {
     return toast("File too large! Max 32MB", true);
   }
@@ -724,4 +723,54 @@ async function prevGFile(input) {
     prev.innerHTML = `<div style="color:#f87171">❌ Upload failed</div>`;
     toast("Upload failed!", true);
   }
+}
+
+/*===== REGISTRATION SETTINGS (Google Form) =====*/
+async function loadRegistrationSettings() {
+  const settings = await getRegistrationSettings();
+  const titleEl = document.getElementById('rs-title');
+  const descEl = document.getElementById('rs-desc');
+  const linkEl = document.getElementById('rs-link');
+  const deadEl = document.getElementById('rs-deadline');
+  const activeEl = document.getElementById('rs-active');
+  
+  if(titleEl) titleEl.value = settings.title || '';
+  if(descEl) descEl.value = settings.description || '';
+  if(linkEl) linkEl.value = settings.formLink || '';
+  if(deadEl) deadEl.value = settings.deadline || '';
+  if(activeEl) activeEl.checked = settings.active || false;
+}
+
+async function saveRegistrationSettings() {
+  const data = {
+    title: document.getElementById('rs-title')?.value.trim() || '',
+    description: document.getElementById('rs-desc')?.value.trim() || '',
+    formLink: document.getElementById('rs-link')?.value.trim() || '',
+    deadline: document.getElementById('rs-deadline')?.value || '',
+    active: document.getElementById('rs-active')?.checked || false
+  };
+  
+  if(data.active && !data.formLink) {
+    return toast("Google Form link is required when active!", true);
+  }
+  
+  if(data.active && !data.title) {
+    return toast("Title is required when active!", true);
+  }
+  
+  const btn = document.getElementById('rs-save-btn');
+  if(btn) {
+    btn.textContent = '⏳ Saving...';
+    btn.disabled = true;
+  }
+  
+  const ok = await updateRegistrationSettings(data);
+  
+  if(btn) {
+    btn.textContent = '💾 Save Registration Settings';
+    btn.disabled = false;
+  }
+  
+  if(ok) toast("Registration settings saved! ✅");
+  else toast("Save failed!", true);
 }
