@@ -70,7 +70,7 @@
 .empty-row td{text-align:center;color:var(--muted);padding:32px!important}
 .he-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 @media(max-width:640px){.he-grid{grid-template-columns:1fr}}
-.set-wrap{max-width:480px}
+.set-wrap{max-width:640px}
 .fm-ov{position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
 .fm-ov.open{opacity:1;pointer-events:all}
 .fm{background:var(--card);border:1px solid var(--bdr2);border-radius:15px;width:100%;max-width:620px;max-height:93vh;overflow-y:auto;transform:translateY(18px);transition:transform .2s;padding:28px}
@@ -264,13 +264,64 @@ select.fi{cursor:pointer}
       <!-- SETTINGS -->
       <div class="adm-sec" id="set-adm">
         <div class="set-wrap">
-          <div class="fg" style="background:rgba(37,99,235,.05);border:1px solid var(--bdr);border-radius:8px;padding:16px;">
-            <label style="color:var(--blue-br);margin-bottom:10px;">Firebase Authentication</label>
-            <p style="color:var(--muted);font-size:.83rem;line-height:1.6;">
+          
+          <!-- Registration Form Settings -->
+          <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-bottom:24px;">
+            <h3 style="font-family:Montserrat;font-size:1.1rem;font-weight:800;margin-bottom:6px;">
+              📝 Registration Form Settings
+            </h3>
+            <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">
+              Share a Google Form link with visitors. Users will see the description and button on the Register page.
+            </p>
+            
+            <div class="chk-wrap" style="margin-bottom:16px;">
+              <input type="checkbox" id="rs-active">
+              <label for="rs-active">✅ Registration is Currently Open</label>
+            </div>
+            
+            <div class="fg">
+              <label>Competition Title *</label>
+              <input class="fi" id="rs-title" placeholder="e.g. Bangladesh Math Olympiad 2026">
+            </div>
+            
+            <div class="fg">
+              <label>Description</label>
+              <textarea class="fi" id="rs-desc" style="min-height:130px;" placeholder="Write details about the competition — eligibility, prizes, dates, rules, requirements, etc."></textarea>
+              <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
+                💡 This will show on the Register page
+              </p>
+            </div>
+            
+            <div class="fg">
+              <label>Google Form Link *</label>
+              <input class="fi" id="rs-link" placeholder="https://docs.google.com/forms/...">
+              <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
+                💡 Create a Google Form and paste the sharing link here
+              </p>
+            </div>
+            
+            <div class="fg">
+              <label>Registration Deadline (Optional)</label>
+              <input class="fi" type="date" id="rs-deadline">
+              <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
+                💡 After this date, registration will auto-close
+              </p>
+            </div>
+            
+            <button id="rs-save-btn" class="fs-btn" style="width:100%;margin-top:10px;" onclick="saveRegistrationSettings()">
+              💾 Save Registration Settings
+            </button>
+          </div>
+          
+          <!-- Firebase Info -->
+          <div style="background:rgba(37,99,235,.05);border:1px solid var(--bdr);border-radius:12px;padding:20px;">
+            <h4 style="color:var(--blue-br);margin-bottom:10px;font-family:Montserrat;font-size:.95rem;">🔐 Firebase Authentication</h4>
+            <p style="color:var(--muted);font-size:.83rem;line-height:1.7;">
               Admin credentials are managed through Firebase Console. 
-              To change your email or password, please visit Firebase Console → Authentication → Users.
+              To change email/password: <strong style="color:var(--txt);">Firebase Console → Authentication → Users</strong>
             </p>
           </div>
+          
         </div>
       </div>
 
@@ -322,7 +373,7 @@ select.fi{cursor:pointer}
     <div class="fg">
       <div class="chk-wrap">
         <input type="checkbox" id="of-reg-enabled">
-        <label for="of-reg-enabled">✅ Enable Registration Form on Site (allow users to register)</label>
+        <label for="of-reg-enabled">✅ Enable Registration for this Olympiad</label>
       </div>
     </div>
 
