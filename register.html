@@ -8,29 +8,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
-.reg-container{max-width:700px;margin:0 auto;padding:0 16px;}
-.reg-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:32px;box-shadow:var(--glow);}
-@media(max-width:500px){.reg-card{padding:20px 16px;}}
-.reg-card h3{font-family:Montserrat;font-size:1.3rem;font-weight:800;margin-bottom:6px;}
-.reg-card .rs{color:var(--muted);font-size:.9rem;margin-bottom:24px;}
-.rf-group{margin-bottom:16px;}
-.rf-group label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.05em;}
-.rf-input{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:11px 14px;border-radius:8px;font-size:.9rem;outline:none;transition:border-color .2s,box-shadow .2s;}
-.rf-input:focus{border-color:var(--blue-br);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
-textarea.rf-input{min-height:100px;resize:vertical;}
-select.rf-input{cursor:pointer;}
-.rf-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-@media(max-width:500px){.rf-row{grid-template-columns:1fr;}}
-.rf-btn{width:100%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:13px;border-radius:8px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:6px;transition:opacity .2s,transform .15s;box-shadow:var(--glow);}
-.rf-btn:hover{opacity:.9;transform:translateY(-1px);}
-.rf-btn:disabled{opacity:.6;cursor:not-allowed;}
-.reg-success{display:none;text-align:center;padding:40px 20px;}
-.reg-success .rs-ico{font-size:4rem;margin-bottom:16px;}
-.reg-success h2{font-family:Montserrat;font-size:1.6rem;font-weight:800;margin-bottom:10px;}
-.reg-success h2 span{color:var(--blue-br);}
-.reg-success p{color:var(--muted);font-size:.95rem;line-height:1.7;margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto;}
-.reg-success .btn-pri{margin-top:10px;display:inline-block;}
-.rf-info{background:rgba(37,99,235,.06);border:1px solid var(--bdr2);border-radius:8px;padding:14px;font-size:.83rem;color:var(--lblue);margin-bottom:20px;line-height:1.6;}
+.reg-container{max-width:750px;margin:0 auto;padding:0 16px;}
+.reg-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:36px;box-shadow:var(--glow);}
+@media(max-width:500px){.reg-card{padding:24px 20px;}}
+.reg-card h2{font-family:Montserrat;font-size:1.5rem;font-weight:800;margin-bottom:8px;line-height:1.3;}
+.reg-card h2 span{color:var(--blue-br);}
+.reg-status{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.14);color:#4ade80;border:1px solid rgba(34,197,94,.22);padding:5px 12px;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:16px;}
+.reg-status.closed{background:rgba(239,68,68,.14);color:#f87171;border-color:rgba(239,68,68,.22);}
+.reg-desc{color:var(--muted);font-size:.95rem;line-height:1.75;margin-bottom:24px;white-space:pre-wrap;}
+.reg-deadline{display:flex;align-items:center;gap:10px;background:rgba(37,99,235,.06);border:1px solid var(--bdr2);border-radius:10px;padding:14px 18px;margin-bottom:24px;}
+.reg-deadline .ic{font-size:1.4rem;}
+.reg-deadline strong{color:var(--txt);font-size:.9rem;display:block;}
+.reg-deadline span{color:var(--muted);font-size:.82rem;}
+.reg-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;text-decoration:none;padding:16px 28px;border-radius:10px;font-weight:700;font-size:1rem;box-shadow:var(--glow);transition:transform .15s,box-shadow .2s;border:none;cursor:pointer;}
+.reg-btn:hover{transform:translateY(-2px);box-shadow:0 0 48px rgba(37,99,235,.42);}
+.reg-empty{text-align:center;padding:50px 20px;}
+.reg-empty .ei{font-size:4rem;margin-bottom:16px;}
+.reg-empty h3{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:10px;}
+.reg-empty p{color:var(--muted);font-size:.95rem;line-height:1.7;max-width:400px;margin:0 auto 20px;}
+.reg-loading{text-align:center;padding:60px 20px;color:var(--muted);}
+.reg-note{background:rgba(37,99,235,.05);border:1px dashed var(--bdr2);border-radius:10px;padding:16px;font-size:.83rem;color:var(--lblue);margin-top:20px;line-height:1.6;}
+.reg-note strong{color:var(--txt);}
 </style>
 </head>
 <body>
@@ -61,83 +59,53 @@ select.rf-input{cursor:pointer;}
 <!-- PAGE HEADER -->
 <div class="page-header">
   <span class="eyebrow">Registration</span>
-  <h1>Register for <span>Competitions</span></h1>
-  <p>Fill out the form below to register for upcoming olympiads and competitions.</p>
+  <h1>Join Our <span>Competition</span></h1>
+  <p>Register for upcoming olympiads and competitions with a simple form.</p>
 </div>
 
 <!-- REGISTRATION SECTION -->
 <section class="section">
   <div class="reg-container">
+    
+    <!-- Loading State -->
+    <div class="reg-card reg-loading" id="reg-loading">
+      <div style="font-size:2rem;margin-bottom:10px;">⏳</div>
+      <p>Loading registration details...</p>
+    </div>
 
-    <!-- Registration Form -->
-    <div id="reg-form-wrap">
-      <div class="reg-card">
-        <h3>📝 Registration Form</h3>
-        <p class="rs">Complete this form to secure your spot in the competition.</p>
-
-        <div class="rf-info">
-          💡 <strong>Note:</strong> After registration, you'll receive a confirmation email. Our team will contact you with further details.
+    <!-- Active Registration -->
+    <div class="reg-card" id="reg-active" style="display:none;">
+      <div class="reg-status" id="reg-status-badge">
+        <span style="display:inline-block;width:8px;height:8px;background:#4ade80;border-radius:50%;"></span>
+        Registration Open
+      </div>
+      <h2 id="reg-title">Competition Title</h2>
+      <div class="reg-desc" id="reg-description">Description loading...</div>
+      
+      <div class="reg-deadline" id="reg-deadline-wrap" style="display:none;">
+        <div class="ic">📅</div>
+        <div>
+          <strong>Registration Deadline</strong>
+          <span id="reg-deadline-text">-</span>
         </div>
-
-        <form onsubmit="submitRegistration(event)">
-          
-          <div class="rf-group">
-            <label>Select Olympiad *</label>
-            <select class="rf-input" id="rf-olympiad" required>
-              <option value="">-- Select an Olympiad --</option>
-            </select>
-          </div>
-
-          <div class="rf-row">
-            <div class="rf-group">
-              <label>Full Name *</label>
-              <input class="rf-input" type="text" id="rf-name" placeholder="Your full name" required>
-            </div>
-            <div class="rf-group">
-              <label>Phone Number *</label>
-              <input class="rf-input" type="tel" id="rf-phone" placeholder="+880 1XXX-XXXXXX" required>
-            </div>
-          </div>
-
-          <div class="rf-group">
-            <label>Email Address *</label>
-            <input class="rf-input" type="email" id="rf-email" placeholder="your@email.com" required>
-          </div>
-
-          <div class="rf-row">
-            <div class="rf-group">
-              <label>Class / Grade</label>
-              <input class="rf-input" type="text" id="rf-class" placeholder="e.g. Class 9">
-            </div>
-            <div class="rf-group">
-              <label>School Name</label>
-              <input class="rf-input" type="text" id="rf-school" placeholder="Your school name">
-            </div>
-          </div>
-
-          <div class="rf-group">
-            <label>Address</label>
-            <input class="rf-input" type="text" id="rf-address" placeholder="City, District">
-          </div>
-
-          <div class="rf-group">
-            <label>Additional Message (Optional)</label>
-            <textarea class="rf-input" id="rf-message" placeholder="Any questions or special requirements?"></textarea>
-          </div>
-
-          <button type="submit" class="rf-btn">Submit Registration 🚀</button>
-        </form>
+      </div>
+      
+      <a href="#" id="reg-link-btn" class="reg-btn" target="_blank" rel="noopener">
+        📝 Fill Registration Form
+        <span style="font-size:1.1rem;">→</span>
+      </a>
+      
+      <div class="reg-note">
+        💡 <strong>Note:</strong> Clicking the button will open the Google Form in a new tab. Fill out all details and submit. You'll receive confirmation after successful submission.
       </div>
     </div>
 
-    <!-- Success Message -->
-    <div class="reg-card reg-success" id="reg-success">
-      <div class="rs-ico">🎉</div>
-      <h2>Registration <span>Successful!</span></h2>
-      <p>Thank you for registering! We've received your details and will contact you soon with more information about the competition.</p>
-      <p>A confirmation email has been sent to your inbox.</p>
-      <button class="btn-pri" onclick="registerAgain()">Register Another 📝</button>
-      <a href="index.html" class="btn-out" style="margin-left:10px;">Back to Home</a>
+    <!-- No Active Registration -->
+    <div class="reg-card reg-empty" id="reg-empty" style="display:none;">
+      <div class="ei">📭</div>
+      <h3>No Active Registration</h3>
+      <p>There are no open competitions at the moment. Please check back later or visit our Olympiads page for upcoming events.</p>
+      <a href="olympiads.html" class="btn-pri">View Olympiads →</a>
     </div>
 
   </div>
@@ -190,5 +158,73 @@ select.rf-input{cursor:pointer;}
 <script src="data.js"></script>
 <script src="render.js"></script>
 <script src="main.js"></script>
+
+<script>
+// Load Registration Settings when page opens
+document.addEventListener('DOMContentLoaded', () => {
+  const check = setInterval(async () => {
+    if(typeof getRegistrationSettings === 'function' && window.firebaseDB) {
+      clearInterval(check);
+      
+      try {
+        const settings = await getRegistrationSettings();
+        
+        document.getElementById('reg-loading').style.display = 'none';
+        
+        if(settings.active && settings.formLink) {
+          // Show active registration
+          document.getElementById('reg-active').style.display = 'block';
+          document.getElementById('reg-title').textContent = settings.title || 'Registration';
+          document.getElementById('reg-description').textContent = settings.description || 'Registration is now open. Click the button below to fill out the form.';
+          document.getElementById('reg-link-btn').href = settings.formLink;
+          
+          if(settings.deadline) {
+            const deadline = new Date(settings.deadline);
+            const formatted = deadline.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            });
+            document.getElementById('reg-deadline-text').textContent = formatted;
+            document.getElementById('reg-deadline-wrap').style.display = 'flex';
+            
+            // Auto-close if deadline passed
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if(deadline < today) {
+              const badge = document.getElementById('reg-status-badge');
+              badge.classList.add('closed');
+              badge.innerHTML = `
+                <span style="display:inline-block;width:8px;height:8px;background:#f87171;border-radius:50%;"></span>
+                Registration Closed
+              `;
+              const btn = document.getElementById('reg-link-btn');
+              btn.style.pointerEvents = 'none';
+              btn.style.opacity = '0.5';
+              btn.innerHTML = '❌ Registration Closed';
+            }
+          }
+        } else {
+          // Show empty state
+          document.getElementById('reg-empty').style.display = 'block';
+        }
+      } catch(err) {
+        console.error("Error loading registration:", err);
+        document.getElementById('reg-loading').style.display = 'none';
+        document.getElementById('reg-empty').style.display = 'block';
+      }
+    }
+  }, 200);
+  
+  // Fallback: If Firebase doesn't load in 10 seconds
+  setTimeout(() => {
+    if(document.getElementById('reg-loading').style.display !== 'none') {
+      document.getElementById('reg-loading').style.display = 'none';
+      document.getElementById('reg-empty').style.display = 'block';
+    }
+  }, 10000);
+});
+</script>
 </body>
 </html>
