@@ -277,7 +277,7 @@ async function deleteMessage(id) {
   }
 }
 
-/*===== REGISTRATIONS =====*/
+/*===== REGISTRATIONS (Old form data - kept for backward compatibility) =====*/
 async function addRegistration(r) {
   await waitForFirebase();
   const { collection, addDoc } = window.firebaseFunctions;
@@ -340,6 +340,42 @@ async function uploadToImgBB(file) {
   } catch(err) {
     console.error("ImgBB upload error:", err);
     return { success: false, error: err.message };
+  }
+}
+
+/*===== REGISTRATION SETTINGS (Google Form Link) =====*/
+async function getRegistrationSettings() {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDoc(doc(db, "settings", "registration"));
+    if(snap.exists()) {
+      return snap.data();
+    }
+    return {
+      title: "",
+      description: "",
+      formLink: "",
+      deadline: "",
+      active: false
+    };
+  } catch(err) {
+    console.error("Get reg settings error:", err);
+    return { title: "", description: "", formLink: "", deadline: "", active: false };
+  }
+}
+
+async function updateRegistrationSettings(data) {
+  await waitForFirebase();
+  const { doc, setDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await setDoc(doc(db, "settings", "registration"), data);
+    return true;
+  } catch(err) {
+    console.error("Update reg settings error:", err);
+    return false;
   }
 }
 
