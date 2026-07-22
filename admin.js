@@ -98,15 +98,17 @@ function goSec(btn) {
   btn.classList.add('active');
 
   const titles = {
-    'dash': 'Dashboard',
-    'home-ed': 'Home Page Editor',
-    'olymp-adm': 'Manage Olympiads',
-    'gal-adm': 'Gallery Manager',
-    'news-adm': 'News Updates',
-    'msg-adm': 'Contact Messages',
-    'reg-adm': 'Registrations',
-    'set-adm': 'System Settings'
-  };
+  const titles = {
+  'dash': 'Dashboard',
+  'home-ed': 'Home Page Editor',
+  'olymp-adm': 'Manage Olympiads',
+  'gal-adm': 'Gallery Manager',
+  'news-adm': 'News Updates',
+  'msg-adm': 'Contact Messages',
+  'reg-adm': 'Registrations',
+  'popup-adm': 'Popup Notice',
+  'set-adm': 'System Settings'
+};
   const ptitle = document.getElementById('adm-ptitle');
   if(ptitle) ptitle.textContent = titles[secId] || secId;
 
@@ -126,10 +128,15 @@ function goSec(btn) {
     }
   }
 
-  // Load registration settings when opening Settings tab
-  if(secId === 'set-adm') {
-    loadRegistrationSettings();
-  }
+  // Load settings when opening Settings tab
+if(secId === 'set-adm') {
+  loadRegistrationSettings();
+}
+
+// Load popup settings when opening Popup tab
+if(secId === 'popup-adm') {
+  loadPopupSettings();
+}
 
   if(window.innerWidth <= 700) closeSidebar();
 }
