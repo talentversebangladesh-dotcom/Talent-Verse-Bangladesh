@@ -1,3 +1,80 @@
+/*===== EMERGENCY DEBUG LOGIN =====*/
+console.log("🚀 admin.js loaded");
+
+window.addEventListener('load', () => {
+  console.log("✅ Page fully loaded");
+  console.log("Firebase Auth:", window.firebaseAuth);
+  console.log("Firebase Functions:", window.firebaseFunctions);
+  
+  setTimeout(() => {
+    if(window.firebaseAuth) {
+      console.log("✅ Firebase Auth is READY");
+    } else {
+      console.log("❌ Firebase Auth NOT loaded!");
+      alert("❌ Firebase failed to load. Check firebase-config.js");
+    }
+  }, 3000);
+});
+
+async function doLogin() {
+  console.log("🔵 doLogin called!");
+  
+  const emailEl = document.getElementById('lu');
+  const passEl = document.getElementById('lp');
+  const errEl = document.getElementById('lerr');
+  
+  console.log("Email element:", emailEl);
+  console.log("Password element:", passEl);
+  
+  if(!emailEl || !passEl) {
+    alert("❌ Email/Password field not found!");
+    return;
+  }
+  
+  const u = emailEl.value.trim();
+  const p = passEl.value;
+  
+  console.log("Email:", u);
+  console.log("Password length:", p.length);
+  
+  if(!u || !p) {
+    alert("Please fill both fields!");
+    return;
+  }
+  
+  if(!window.firebaseAuth) {
+    alert("❌ Firebase Auth not ready! Wait and try again.");
+    console.error("firebaseAuth is:", window.firebaseAuth);
+    return;
+  }
+  
+  if(!window.firebaseFunctions || !window.firebaseFunctions.signInWithEmailAndPassword) {
+    alert("❌ Firebase functions not loaded!");
+    console.error("firebaseFunctions:", window.firebaseFunctions);
+    return;
+  }
+  
+  try {
+    console.log("🔐 Attempting login...");
+    const { signInWithEmailAndPassword } = window.firebaseFunctions;
+    const result = await signInWithEmailAndPassword(window.firebaseAuth, u, p);
+    console.log("✅ LOGIN SUCCESS!", result.user.email);
+    alert("✅ Login SUCCESS!\n\nEmail: " + result.user.email);
+    
+    // Show admin panel
+    document.getElementById('adm-login').classList.add('hidden');
+    document.getElementById('adm-shell').classList.add('show-admin');
+    document.getElementById('adm-shell').style.display = 'flex';
+    
+    if(typeof renderAdminAll === 'function') {
+      renderAdminAll();
+    }
+    
+  } catch(error) {
+    console.error("❌ LOGIN ERROR:", error);
+    alert("❌ Login Failed!\n\nCode: " + error.code + "\n\nMessage: " + error.message);
+  }
+}
 /*===== ADMIN NAVIGATION =====*/
 function openAdmin() {
   window.location.href = 'admin.html';
