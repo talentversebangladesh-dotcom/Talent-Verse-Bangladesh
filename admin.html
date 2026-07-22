@@ -153,11 +153,12 @@ select.fi{cursor:pointer}
         <button class="adm-nb" data-sec="news-adm" onclick="goSec(this)"><span class="ico">📰</span>News</button>
         
         <div class="adm-ns">Inbox</div>
-        <button class="adm-nb" data-sec="msg-adm" onclick="goSec(this)"><span class="ico">✉️</span>Messages</button>
-        <button class="adm-nb" data-sec="reg-adm" onclick="goSec(this)"><span class="ico">📝</span>Registrations</button>
-        
-        <div class="adm-ns">Settings</div>
-        <button class="adm-nb" data-sec="set-adm" onclick="goSec(this)"><span class="ico">⚙️</span>Settings</button>
+<button class="adm-nb" data-sec="msg-adm" onclick="goSec(this)"><span class="ico">✉️</span>Messages</button>
+<button class="adm-nb" data-sec="reg-adm" onclick="goSec(this)"><span class="ico">📝</span>Registrations</button>
+
+<div class="adm-ns">Notice & Settings</div>
+<button class="adm-nb" data-sec="popup-adm" onclick="goSec(this)"><span class="ico">📢</span>Popup Notice</button>
+<button class="adm-nb" data-sec="set-adm" onclick="goSec(this)"><span class="ico">⚙️</span>Settings</button>
       </nav>
       <div class="adm-sb-footer">
         <button onclick="closeAdmin()">← Site</button>
@@ -260,6 +261,104 @@ select.fi{cursor:pointer}
           </table>
         </div>
       </div>
+      <!-- POPUP NOTICE -->
+<div class="adm-sec" id="popup-adm">
+  <div class="set-wrap" style="max-width:700px;">
+    
+    <!-- Main Popup Settings -->
+    <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-bottom:24px;">
+      <h3 style="font-family:Montserrat;font-size:1.15rem;font-weight:800;margin-bottom:6px;">
+        📢 Popup Notice Settings
+      </h3>
+      <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">
+        Show a popup notice to visitors when they open the website. Perfect for announcements, deadlines, or special events.
+      </p>
+      
+      <!-- Active Toggle -->
+      <div class="chk-wrap" style="margin-bottom:20px;background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3);">
+        <input type="checkbox" id="ps-active">
+        <label for="ps-active">
+          🔔 <strong>Show Popup to Visitors</strong>
+        </label>
+      </div>
+      
+      <div class="fg">
+        <label>Popup Title *</label>
+        <input class="fi" id="ps-title" placeholder="e.g. Important Notice">
+      </div>
+      
+      <div class="fg">
+        <label>Popup Message *</label>
+        <textarea class="fi" id="ps-message" style="min-height:100px;" placeholder="e.g. Campus Ambassador Registration - Only 1 Day Left!"></textarea>
+        <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
+          💡 Keep it short and impactful
+        </p>
+      </div>
+      
+      <div class="f-row">
+        <div class="fg">
+          <label>Button Text</label>
+          <input class="fi" id="ps-btn-text" placeholder="Apply Now" value="Apply Now">
+        </div>
+        <div class="fg">
+          <label>Button Link (URL)</label>
+          <input class="fi" id="ps-btn-link" placeholder="https://...">
+        </div>
+      </div>
+      
+      <div class="fg">
+        <label>⏰ Deadline (For Countdown Timer)</label>
+        <input class="fi" type="datetime-local" id="ps-deadline">
+        <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
+          💡 Popup will show live countdown until this time. After deadline, it will auto-show "Registration Closed"
+        </p>
+      </div>
+      
+    </div>
+    
+    <!-- Notice Bar Settings -->
+    <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-bottom:24px;">
+      <h3 style="font-family:Montserrat;font-size:1.05rem;font-weight:800;margin-bottom:6px;">
+        🔴 Top Notice Bar
+      </h3>
+      <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">
+        Shows a slim notice bar at the top of every page with countdown status.
+      </p>
+      
+      <div class="chk-wrap" style="margin-bottom:16px;background:rgba(37,99,235,.08);">
+        <input type="checkbox" id="ps-nb-active">
+        <label for="ps-nb-active">
+          📌 <strong>Show Notice Bar on All Pages</strong>
+        </label>
+      </div>
+      
+      <div class="fg">
+        <label>Notice Bar Text</label>
+        <input class="fi" id="ps-nb-text" placeholder="e.g. Registration is Open Now!">
+        <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
+          💡 Short message that appears in the top bar
+        </p>
+      </div>
+    </div>
+    
+    <!-- Preview Info -->
+    <div style="background:rgba(37,99,235,.05);border:1px dashed var(--bdr2);border-radius:10px;padding:16px;margin-bottom:20px;">
+      <p style="font-size:.83rem;color:var(--lblue);line-height:1.7;">
+        💡 <strong style="color:var(--txt);">How it works:</strong><br>
+        • Popup shows once per day (users can close it)<br>
+        • Countdown updates every second in real-time<br>
+        • After deadline, popup shows "Registration Closed" automatically<br>
+        • Notice Bar shows live status at the top
+      </p>
+    </div>
+    
+    <!-- Save Button -->
+    <button id="ps-save-btn" class="fs-btn" style="width:100%;padding:14px;font-size:.95rem;" onclick="savePopupSettings()">
+      💾 Save Popup Settings
+    </button>
+    
+  </div>
+</div>
 
       <!-- SETTINGS -->
       <div class="adm-sec" id="set-adm">
