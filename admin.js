@@ -774,3 +774,61 @@ async function saveRegistrationSettings() {
   if(ok) toast("Registration settings saved! ✅");
   else toast("Save failed!", true);
 }
+/*===== POPUP NOTICE SETTINGS (Admin) =====*/
+async function loadPopupSettings() {
+  const settings = await getPopupSettings();
+  
+  const activeEl = document.getElementById('ps-active');
+  const titleEl = document.getElementById('ps-title');
+  const msgEl = document.getElementById('ps-message');
+  const btnTextEl = document.getElementById('ps-btn-text');
+  const btnLinkEl = document.getElementById('ps-btn-link');
+  const deadEl = document.getElementById('ps-deadline');
+  const nbActiveEl = document.getElementById('ps-nb-active');
+  const nbTextEl = document.getElementById('ps-nb-text');
+  
+  if(activeEl) activeEl.checked = settings.active || false;
+  if(titleEl) titleEl.value = settings.title || '';
+  if(msgEl) msgEl.value = settings.message || '';
+  if(btnTextEl) btnTextEl.value = settings.buttonText || 'Apply Now';
+  if(btnLinkEl) btnLinkEl.value = settings.buttonLink || '';
+  if(deadEl) deadEl.value = settings.deadline || '';
+  if(nbActiveEl) nbActiveEl.checked = settings.showNoticeBar || false;
+  if(nbTextEl) nbTextEl.value = settings.noticeBarText || '';
+}
+
+async function savePopupSettings() {
+  const data = {
+    active: document.getElementById('ps-active')?.checked || false,
+    title: document.getElementById('ps-title')?.value.trim() || '',
+    message: document.getElementById('ps-message')?.value.trim() || '',
+    buttonText: document.getElementById('ps-btn-text')?.value.trim() || 'Apply Now',
+    buttonLink: document.getElementById('ps-btn-link')?.value.trim() || '',
+    deadline: document.getElementById('ps-deadline')?.value || '',
+    showNoticeBar: document.getElementById('ps-nb-active')?.checked || false,
+    noticeBarText: document.getElementById('ps-nb-text')?.value.trim() || ''
+  };
+  
+  if(data.active && !data.title) {
+    return toast("Title is required when active!", true);
+  }
+  if(data.active && !data.message) {
+    return toast("Message is required when active!", true);
+  }
+  
+  const btn = document.getElementById('ps-save-btn');
+  if(btn) {
+    btn.textContent = '⏳ Saving...';
+    btn.disabled = true;
+  }
+  
+  const ok = await updatePopupSettings(data);
+  
+  if(btn) {
+    btn.textContent = '💾 Save Popup Settings';
+    btn.disabled = false;
+  }
+  
+  if(ok) toast("Popup settings saved! ✅");
+  else toast("Save failed!", true);
+}
